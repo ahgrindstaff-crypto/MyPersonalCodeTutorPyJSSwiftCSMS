@@ -378,3 +378,127 @@ Object.assign(LESSONS,{
   };
 })();
 </script>
+<style>
+.task-card{background:var(--al);border:1px solid #c7d9fe;border-radius:var(--r);padding:14px 16px;flex-shrink:0}
+.task-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ac);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.task-txt{font-size:14px;line-height:1.68;color:var(--t2);margin-bottom:0}
+.task-empty{font-size:13px;color:var(--t4);font-style:italic}
+.copy-big{width:100%;padding:11px;font-size:13.5px;font-weight:600;cursor:pointer;border:1px solid var(--sub);border-radius:var(--rs);background:var(--sul);color:var(--su);font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;transition:all .15s}
+.copy-big:hover{background:#dcfce7;border-color:var(--su)}
+.copy-big.copied{background:var(--su);color:#fff;border-color:var(--su)}
+.step-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t4);flex-shrink:0;flex-wrap:wrap}
+.step-pill{background:var(--cb);border:1px solid var(--cbb);border-radius:20px;padding:3px 10px;font-size:11.5px;color:var(--t3);white-space:nowrap}
+.step-arrow{color:var(--t4);font-size:13px}
+.ed-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer;border:1px solid var(--bd);border-radius:var(--rs);background:var(--w);color:var(--t);font-family:var(--sans);transition:all .15s}
+.ed-btn:hover{background:var(--bg);border-color:var(--ac);color:var(--ac)}
+</style>
+<script>
+(function(){
+
+  var EDITORS3 = {
+    python:[
+      {name:'CodeHS',         url:'https://codehs.com',                                                                  badge:'District',      bc:'district'},
+      {name:'Pickcode',       url:'https://app.pickcode.io/login',                                                       badge:null,            bc:''},
+      {name:'Raspberry Pi',   url:'https://editor.raspberrypi.org/en-US/projects/blank-python-starter',                  badge:"Teacher's Pick",bc:'pick'}
+    ],
+    javascript:[
+      {name:'CodeHS',         url:'https://codehs.com',                                                                  badge:'District',      bc:'district'}
+    ],
+    swift:[
+      {name:'CodeHS',         url:'https://codehs.com',                                                                  badge:'District',      bc:'district'},
+      {name:'Swift Playgrounds',url:'https://apps.apple.com/us/app/swift-playgrounds/id1496833156',                      badge:null,            bc:''},
+      {name:'Xcode',          url:'https://apps.apple.com/us/app/xcode/id497799835',                                     badge:null,            bc:''}
+    ]
+  };
+
+  // ── Inject task card + big copy button + step guide at top of practice pane ──
+  function injectPracticeUI() {
+    var prac = document.querySelector('.pw2');
+    if (!prac || document.getElementById('task-card')) return;
+
+    // Task card
+    var tc = document.createElement('div');
+    tc.id = 'task-card';
+    tc.className = 'task-card';
+    tc.innerHTML = '<div class="task-lbl">&#128203; Your Task</div><div id="task-txt" class="task-empty">Load a lesson from the sidebar and your task will appear here.</div>';
+    prac.insertBefore(tc, prac.firstChild);
+
+    // Big copy button (replaces old small one — injected just before the editor label)
+    var bigCopy = document.createElement('button');
+    bigCopy.id = 'big-copy';
+    bigCopy.className = 'copy-big';
+    bigCopy.innerHTML = '&#128203; Copy My Code &mdash; then paste it in the editor below';
+    bigCopy.onclick = function() {
+      var code = document.getElementById('editor').value;
+      if (!code.trim()) { bigCopy.innerHTML = '&#9888;&#65039; Nothing to copy yet &mdash; write some code first!'; setTimeout(resetBigCopy, 2000); return; }
+      navigator.clipboard.writeText(code).then(function() {
+        bigCopy.innerHTML = '&#10003; Copied! Now open an editor below and paste it in.';
+        bigCopy.classList.add('copied');
+        setTimeout(resetBigCopy, 2500);
+      });
+    };
+    function resetBigCopy() { bigCopy.innerHTML = '&#128203; Copy My Code &mdash; then paste it in the editor below'; bigCopy.classList.remove('copied'); }
+
+    // Step guide row
+    var steps = document.createElement('div');
+    steps.className = 'step-row';
+    steps.innerHTML = '<span class="step-pill">1&#8419; Write your code above</span><span class="step-arrow">&#8594;</span><span class="step-pill">2&#8419; Click Copy</span><span class="step-arrow">&#8594;</span><span class="step-pill">3&#8419; Open an editor below</span><span class="step-arrow">&#8594;</span><span class="step-pill">4&#8419; Paste &amp; Run</span>';
+
+    // Insert big copy button + steps before the existing run row
+    var rr = document.querySelector('.rr');
+    if (rr) { prac.insertBefore(steps, rr); prac.insertBefore(bigCopy, steps); }
+  }
+
+  // ── Update task text when a lesson loads ──────────────────────────────────
+  function updateTask() {
+    var el = document.getElementById('task-txt');
+    if (!el) return;
+    var lesson = (typeof LESSONS !== 'undefined' && typeof cLesson !== 'undefined' && cLesson) ? LESSONS[cLesson] : null;
+    if (lesson && lesson.exercise) {
+      el.textContent = lesson.exercise;
+      el.className = 'task-txt';
+    } else {
+      el.textContent = 'Load a lesson from the sidebar and your task will appear here.';
+      el.className = 'task-empty';
+    }
+  }
+
+  // ── Rebuild editor buttons using window.open (guaranteed new tab) ─────────
+  function updateEditorBtns(lang) {
+    var sec = document.getElementById('eds-sec');
+    if (!sec) return;
+    var editors = EDITORS3[lang] || [];
+    var btns = editors.map(function(e) {
+      var badge = e.badge ? '<span class="ed-badge '+e.bc+'">'+e.badge+'</span>' : '';
+      return '<button class="ed-btn" onclick="window.open(\''+e.url+'\',\'_blank\',\'noopener,noreferrer\')">'+badge+'&#8599; '+e.name+'</button>';
+    }).join('');
+    var note = lang === 'javascript'
+      ? '&#9432; JavaScript already runs in this app. Use an external editor if you want to save your work or share it.'
+      : '&#9432; These open in a new tab. Your code stays here &mdash; use the Copy button above to bring it with you.';
+    sec.innerHTML = '<div class="eds-head">&#8599; Open External Editor in New Tab</div><div class="eds-btns">'+btns+'</div><div class="eds-note">'+note+'</div>';
+  }
+
+  // ── Wrap loadLesson to refresh task card ──────────────────────────────────
+  var origLoad = window.loadLesson;
+  window.loadLesson = function(id) {
+    origLoad(id);
+    updateTask();
+    updateEditorBtns(typeof cLang !== 'undefined' ? cLang : 'python');
+  };
+
+  // ── Wrap switchLang to refresh everything ─────────────────────────────────
+  var origSwitch = window.switchLang;
+  window.switchLang = function(lang) {
+    origSwitch(lang);
+    updateTask();
+    setTimeout(function(){ updateEditorBtns(lang); }, 80);
+  };
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  setTimeout(function() {
+    injectPracticeUI();
+    updateEditorBtns(typeof cLang !== 'undefined' ? cLang : 'python');
+  }, 200);
+
+})();
+</script>
