@@ -84,7 +84,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);background:var(--b
 <body>
 <div class="app">
   <div class="hdr">
-    <div class="logo">Code<span>Tutor</span></div>
+    <div class="logo">Mr. G's Code<span>Tutor</span></div>
     <button class="lbtn active" data-lang="python" onclick="switchLang('python')">🐍 Python</button>
     <button class="lbtn" data-lang="javascript" onclick="switchLang('javascript')">⚡ JavaScript</button>
     <button class="lbtn" data-lang="swift" onclick="switchLang('swift')"> Swift</button>
@@ -252,3 +252,69 @@ Object.assign(LESSONS,{
 </script>
 </body>
 </html>
+<style>
+.eds-wrap{border-top:1px solid var(--bd);padding-top:14px;flex-shrink:0}
+.eds-head{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.eds-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.ed-link{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer;border:1px solid var(--bd);border-radius:var(--rs);background:var(--w);color:var(--t);text-decoration:none;font-family:var(--sans);transition:all .15s;line-height:1}
+.ed-link:hover{background:var(--bg);border-color:var(--ac);color:var(--ac)}
+.ed-badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-radius:20px;padding:2px 7px;color:#fff;flex-shrink:0}
+.ed-badge.district{background:var(--ac)}
+.ed-badge.pick{background:var(--pu)}
+.eds-note{font-size:11.5px;color:var(--t4);line-height:1.6}
+.eds-note strong{color:var(--t3)}
+</style>
+<script>
+(function(){
+  var EDITORS = {
+    python: [
+      {name:'CodeHS', url:'https://codehs.com', badge:'District', badgeClass:'district', note:'District sandbox — supports all three languages'},
+      {name:'Pickcode', url:'https://app.pickcode.io/login', badge:null, note:'Python online editor'},
+      {name:'Raspberry Pi Editor', url:'https://editor.raspberrypi.org/en-US/projects/blank-python-starter', badge:"Teacher's Pick", badgeClass:'pick', note:'Mr. Grindstaff\'s preferred Python editor'}
+    ],
+    javascript: [
+      {name:'CodeHS', url:'https://codehs.com', badge:'District', badgeClass:'district', note:'District sandbox — supports all three languages'}
+    ],
+    swift: [
+      {name:'CodeHS', url:'https://codehs.com', badge:'District', badgeClass:'district', note:'District sandbox — supports all three languages'},
+      {name:'Swift Playgrounds', url:'https://apps.apple.com/us/app/swift-playgrounds/id1496833156', badge:null, note:'Free iPad or Mac app from Apple'},
+      {name:'Xcode', url:'https://apps.apple.com/us/app/xcode/id497799835', badge:null, note:'Full development environment — Mac only'}
+    ]
+  };
+
+  function buildHTML(lang) {
+    var editors = EDITORS[lang] || [];
+    var btns = editors.map(function(e) {
+      var badge = e.badge ? '<span class="ed-badge '+e.badgeClass+'">'+e.badge+'</span>' : '';
+      return '<a href="'+e.url+'" target="_blank" rel="noopener noreferrer" class="ed-link">'+badge+'&#128279; '+e.name+'</a>';
+    }).join('');
+    var note = lang === 'javascript'
+      ? '<strong>Tip:</strong> JavaScript already runs live in the Practice tab above. Use CodeHS if you prefer a full environment or want to save your work.'
+      : '<strong>Before clicking:</strong> copy your code from the editor above — it will not transfer automatically. Paste it into the external editor to run.';
+    return '<div class="eds-head">&#128279; Open in External Editor</div><div class="eds-btns">'+btns+'</div><div class="eds-note">'+note+'</div>';
+  }
+
+  function injectSection(lang) {
+    var prac = document.querySelector('.pw2');
+    if (!prac) return;
+    var sec = document.getElementById('eds-sec');
+    if (!sec) {
+      sec = document.createElement('div');
+      sec.id = 'eds-sec';
+      sec.className = 'eds-wrap';
+      prac.appendChild(sec);
+    }
+    sec.innerHTML = buildHTML(lang);
+  }
+
+  // Wrap switchLang to keep editors in sync
+  var origSwitch = window.switchLang;
+  window.switchLang = function(lang) {
+    origSwitch(lang);
+    injectSection(lang);
+  };
+
+  // Init on load with a small delay to ensure DOM is ready
+  setTimeout(function(){ injectSection(typeof cLang !== 'undefined' ? cLang : 'python'); }, 100);
+})();
+</script>
