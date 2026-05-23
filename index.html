@@ -160,7 +160,7 @@ function renderSB(){
   });
   sb.innerHTML=h;updP();
 }
-function showWelcome(){document.getElementById('pane-lesson').innerHTML='<div class="ww"><h2>Welcome to CodeTutor</h2><p>Choose a lesson from the sidebar. Each one starts with a real-world analogy, then explains the concept in plain English, then shows a fully annotated code example.</p><p>The <strong>Practice</strong> tab has a code editor. JavaScript runs live in the browser. Python and Swift code can be copied to run externally.</p><p>The <strong>Reflect</strong> tab gives three thinking questions per lesson.</p><p class="pick">Pick a lesson from the sidebar to begin</p></div>';}
+function showWelcome(){document.getElementById('pane-lesson').innerHTML='<div class="ww"><h2>Welcome to Mr. G's CodeTutor</h2><p>Choose a lesson from the sidebar. Each one starts with a real-world analogy, then explains the concept in plain English, then shows a fully annotated code example.</p><p>The <strong>Practice</strong> tab has a code editor. JavaScript runs live in the browser. Python and Swift code can be copied to run externally.</p><p>The <strong>Reflect</strong> tab gives three thinking questions per lesson.</p><p class="pick">Pick a lesson from the sidebar to begin</p></div>';}
 function getAllL(){return CURRICULUM[cLang].flatMap(g=>g.lessons);}
 function getLIdx(id){return getAllL().findIndex(l=>l.id===id);}
 function getLMeta(id){for(const g of Object.values(CURRICULUM).flat())for(const l of g.lessons)if(l.id===id)return l;}
