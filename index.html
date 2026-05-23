@@ -84,7 +84,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--sans);background:var(--b
 <body>
 <div class="app">
   <div class="hdr">
-    <div class="logo">Mr. G's Code<span>Tutor</span></div>
+    <div class="logo">Code<span>Tutor</span></div>
     <button class="lbtn active" data-lang="python" onclick="switchLang('python')">🐍 Python</button>
     <button class="lbtn" data-lang="javascript" onclick="switchLang('javascript')">⚡ JavaScript</button>
     <button class="lbtn" data-lang="swift" onclick="switchLang('swift')"> Swift</button>
@@ -316,5 +316,65 @@ Object.assign(LESSONS,{
 
   // Init on load with a small delay to ensure DOM is ready
   setTimeout(function(){ injectSection(typeof cLang !== 'undefined' ? cLang : 'python'); }, 100);
+})();
+</script>
+<script>
+// Safe JS runner — intercepts window.print(), alert(), confirm(), prompt()
+// Prevents browser dialogs from firing during code execution
+(function(){
+  window.handleRun = function() {
+    if (typeof cLang !== 'undefined' && cLang !== 'javascript') {
+      // Non-JS: just copy to clipboard
+      navigator.clipboard.writeText(document.getElementById('editor').value).then(function(){
+        var b = document.getElementById('copy-btn');
+        var o = b.textContent;
+        b.textContent = 'Copied!';
+        setTimeout(function(){ b.textContent = o; }, 1800);
+      });
+      return;
+    }
+
+    var code = document.getElementById('editor').value;
+    var out  = document.getElementById('output');
+    var logs = [];
+
+    // Save originals
+    var saved = {
+      log:     console.log,
+      error:   console.error,
+      warn:    console.warn,
+      print:   window.print,
+      alert:   window.alert,
+      confirm: window.confirm,
+      prompt:  window.prompt
+    };
+
+    // Safe overrides during execution
+    console.log   = function(){ logs.push(Array.from(arguments).map(function(x){ return typeof x==='object'?JSON.stringify(x,null,2):String(x); }).join(' ')); };
+    console.error = function(){ logs.push('ERROR: '+Array.from(arguments).join(' ')); };
+    console.warn  = function(){ logs.push('WARN: '+Array.from(arguments).join(' ')); };
+    window.print   = function(){ logs.push('\u26a0\ufe0f  print() is a Python function. In JavaScript, use console.log() to display output.'); };
+    window.alert   = function(m){ logs.push('\ud83d\udcac alert: '+m); };
+    window.confirm = function(m){ logs.push('\ud83d\udcac confirm: '+m+' \u2192 returned true'); return true; };
+    window.prompt  = function(m){ logs.push('\ud83d\udcac prompt: '+m+' \u2192 returned null'); return null; };
+
+    out.className = 'out';
+    try {
+      new Function(code)();
+      out.textContent = logs.length ? logs.join('\n') : '(no output \u2014 use console.log() to print values)';
+    } catch(err) {
+      out.className = 'out err';
+      out.textContent = 'Error: ' + err.message;
+    } finally {
+      // Always restore originals
+      console.log    = saved.log;
+      console.error  = saved.error;
+      console.warn   = saved.warn;
+      window.print   = saved.print;
+      window.alert   = saved.alert;
+      window.confirm = saved.confirm;
+      window.prompt  = saved.prompt;
+    }
+  };
 })();
 </script>
